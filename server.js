@@ -13,25 +13,43 @@ app.post('/api/orders', async (req, res) => {
   const { name, email, phone, package: pkg, message } = req.body;
   if (!name || !email || !pkg) return res.status(400).json({ error: 'Vyplňte všetky povinné polia' });
   try {
+    // Письмо тебе (владельцу)
     await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: 'Web Klienti <info@webklienti.com>',
       to: 'anastasiia.sheben@gmail.com',
       subject: `🆕 Nová objednávka — ${pkg}`,
-      html: `<h2>Nová objednávka</h2>
-        <p><b>Meno:</b> ${name}</p>
-        <p><b>Email:</b> ${email}</p>
-        <p><b>Telefón:</b> ${phone || '—'}</p>
-        <p><b>Balík:</b> ${pkg}</p>
-        <p><b>Správa:</b> ${message || '—'}</p>`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px;">
+          <h2>🆕 Nová objednávka</h2>
+          <p><b>Meno:</b> ${name}</p>
+          <p><b>Email:</b> ${email}</p>
+          <p><b>Telefón:</b> ${phone || '—'}</p>
+          <p><b>Balík:</b> ${pkg}</p>
+          <p><b>Správa:</b> ${message || '—'}</p>
+        </div>
+      `,
     });
+    // Письмо клиенту
     await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: 'Web Klienti <info@webklienti.com>',
       to: email,
-      subject: '✅ Objednávka prijatá',
-      html: `<h2>Ďakujeme, ${name}!</h2>
-        <p>Vaša objednávka bola prijatá.</p>
-        <p>Balík: <b>${pkg}</b></p>
-        <p>Ozveme sa vám do 24 hodín.</p>`,
+      subject: '✅ Vaša objednávka bola prijatá',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a;">
+          <h2>Ďakujeme, ${name}! 🎉</h2>
+          <p>Vaša objednávka bola úspešne prijatá. Tešíme sa na spoluprácu!</p>
+          <div style="background: #f5f2eb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0;"><b>Vybraný balík:</b> ${pkg}</p>
+          </div>
+          <p>Ozveme sa vám <b>do 24 hodín</b> s ďalšími krokmi.</p>
+          <p>
+            V prípade otázok nás kontaktujte:<br>
+            📧 info@webklienti.com<br>
+            📞 +421 907 890 600
+          </p>
+          <p style="color: #888; font-size: 12px; margin-top: 40px;">Web Klienti · webklienti.com</p>
+        </div>
+      `,
     });
   } catch (err) {
     console.error('Email error:', err.message);
