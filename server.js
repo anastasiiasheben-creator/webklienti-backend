@@ -42,8 +42,18 @@ app.post('/api/orders', async (req, res) => {
     await transporter.sendMail({
       from: '"Web Klienti" <info@webklienti.com>',
       to: email,
-      subject: `✅ Objednávka prijatá`,
+      subject: '✅ Objednávka prijatá',
       html: `<h2>Ďakujeme, ${name}!</h2>
         <p>Vaša objednávka bola prijatá.</p>
         <p>Balík: <b>${pkg}</b></p>
-        <p>Ozveme sa vám do 24 hodín.</
+        <p>Ozveme sa vám do 24 hodín.</p>`,
+    });
+  } catch (err) {
+    console.error('Email error:', err.message);
+  }
+
+  res.json({ success: true });
+});
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`✅ Server beží na porte ${PORT}`));
