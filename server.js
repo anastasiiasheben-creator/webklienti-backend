@@ -7,6 +7,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Redirect HTTP → HTTPS a www → non-www
+app.use((req, res, next) => {
+  const host = req.headers.host;
+  const proto = req.headers['x-forwarded-proto'];
+
+  if (proto && proto !== 'https') {
+    return res.redirect(301, 'https://' + host.replace(/^www\./, '') + req.url);
+  }
+
+  if (host && host.startsWith('www.')) {
+    return res.redirect(301, 'https://' + host.slice(4) + req.url);
+  }
+
+  next();
+});
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const translations = {
