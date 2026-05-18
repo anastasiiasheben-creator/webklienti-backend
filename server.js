@@ -7,20 +7,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// non-www → www
-app.use((req, res, next) => {
-  const host = req.headers.host;
-  const proto = req.headers['x-forwarded-proto'];
-  if (proto && proto !== 'https') {
-    const wwwHost = host.startsWith('www.') ? host : 'www.' + host;
-    return res.redirect(301, 'https://' + wwwHost + req.url);
-  }
-  if (host && !host.startsWith('www.')) {
-    return res.redirect(301, 'https://www.' + host + req.url);
-  }
-  next();
-});
-
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const translations = {
@@ -53,9 +39,7 @@ const translations = {
 app.post('/api/orders', async (req, res) => {
   const { name, email, phone, package: pkg, message, lang } = req.body;
   if (!name || !email || !pkg) return res.status(400).json({ error: 'Vyplňte všetky povinné polia' });
-
   const t = translations[lang] || translations.sk;
-
   try {
     await resend.emails.send({
       from: 'Web Klienti <info@webklienti.com>',
