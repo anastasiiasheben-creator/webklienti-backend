@@ -2,12 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Resend } = require('resend');
-
 const app = express();
 app.use(cors());
 app.use(express.json());
-
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// ─── Health check — keeps Render from sleeping ────────────────────────────────
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 const translations = {
   sk: {
