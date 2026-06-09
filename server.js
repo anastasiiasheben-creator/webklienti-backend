@@ -7,7 +7,6 @@ app.use(cors());
 app.use(express.json());
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// ─── Health check — keeps Render from sleeping ────────────────────────────────
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 const translations = {
@@ -16,6 +15,7 @@ const translations = {
     thanks: 'Ďakujeme',
     received: 'Vaša objednávka bola úspešne prijatá. Tešíme sa na spoluprácu!',
     package: 'Vybraný balík',
+    website: 'Aktuálny web',
     reply: 'Ozveme sa vám <b>do 24 hodín</b> s ďalšími krokmi.',
     contact: 'V prípade otázok nás kontaktujte',
   },
@@ -24,6 +24,7 @@ const translations = {
     thanks: 'Děkujeme',
     received: 'Vaše objednávka byla úspěšně přijata. Těšíme se na spolupráci!',
     package: 'Vybraný balíček',
+    website: 'Aktuální web',
     reply: 'Ozveme se vám <b>do 24 hodin</b> s dalšími kroky.',
     contact: 'V případě dotazů nás kontaktujte',
   },
@@ -32,16 +33,20 @@ const translations = {
     thanks: 'Thank you',
     received: 'Your order has been successfully received. We look forward to working with you!',
     package: 'Selected plan',
+    website: 'Current website',
     reply: 'We will get back to you <b>within 24 hours</b> with next steps.',
     contact: 'If you have any questions, contact us',
   },
 };
 
 app.post('/api/orders', async (req, res) => {
-  const { name, email, phone, package: pkg, message, lang } = req.body;
+  // OPRAVA: pridané 'website' do destructuringu
+  const { name, email, phone, website, package: pkg, message, lang } = req.body;
   if (!name || !email || !pkg) return res.status(400).json({ error: 'Vyplňte všetky povinné polia' });
   const t = translations[lang] || translations.sk;
+
   try {
+    // Interný email pre administráciu
     await resend.emails.send({
       from: 'Web Klienti <info@webklienti.com>',
       to: 'anastasiia.sheben@gmail.com',
@@ -52,12 +57,15 @@ app.post('/api/orders', async (req, res) => {
           <p><b>Meno:</b> ${name}</p>
           <p><b>Email:</b> ${email}</p>
           <p><b>Telefón:</b> ${phone || '—'}</p>
+          <p><b>Web:</b> ${website ? `<a href="${website}">${website}</a>` : '—'}</p>
           <p><b>Balík:</b> ${pkg}</p>
           <p><b>Správa:</b> ${message || '—'}</p>
           <p><b>Jazyk:</b> ${lang || 'sk'}</p>
         </div>
       `,
     });
+
+    // Potvrdzovací email pre klienta
     await resend.emails.send({
       from: 'Web Klienti <info@webklienti.com>',
       to: email,
@@ -67,7 +75,8 @@ app.post('/api/orders', async (req, res) => {
           <h2>${t.thanks}, ${name}! 🎉</h2>
           <p>${t.received}</p>
           <div style="background: #f5f2eb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p style="margin: 0;"><b>${t.package}:</b> ${pkg}</p>
+            <p style="margin: 0 0 8px;"><b>${t.package}:</b> ${pkg}</p>
+            ${website ? `<p style="margin: 0;"><b>${t.website}:</b> <a href="${website}">${website}</a></p>` : ''}
           </div>
           <p>${t.reply}</p>
           <p>
