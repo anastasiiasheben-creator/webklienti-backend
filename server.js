@@ -40,7 +40,7 @@ const translations = {
 };
 
 app.post('/api/orders', async (req, res) => {
-  // OPRAVA: pridané 'website' do destructuringu
+  // Pridané 'website' do destructuringu
   const { name, email, phone, website, package: pkg, message, lang } = req.body;
   if (!name || !email || !pkg) return res.status(400).json({ error: 'Vyplňte všetky povinné polia' });
   const t = translations[lang] || translations.sk;
@@ -67,7 +67,7 @@ app.post('/api/orders', async (req, res) => {
 
     // Potvrdzovací email pre klienta
     await resend.emails.send({
-      from: 'Web Klienti <info@webklienti.com>',
+      from: 'WebKlienti <info@webklienti.com>',
       to: email,
       subject: t.subject,
       html: `
